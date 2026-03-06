@@ -5,7 +5,8 @@
   "description": "S-Tier Crypto Trading Terminal",
   "main": "electron-main.js",
   "scripts": {
-    "start": "vite",
+    "dev": "vite",
+    "start": "vite preview",
     "build": "vite build",
     "preview": "vite preview",
     "electron:start": "electron .",
