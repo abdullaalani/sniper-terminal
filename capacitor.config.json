@@ -1,0 +1,10 @@
+
+{
+  "appId": "com.sniper.terminal",
+  "appName": "Sniper Terminal",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

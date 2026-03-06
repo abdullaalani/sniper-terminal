@@ -1,0 +1,11 @@
+{
+  "name": "17feb 11:30 am of working wellSniper Terminal",
+  "description": "added better history. logo name visiblity. stopped the console from popping up when markets are pressed",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "electron": {
+    "width": 1280,
+    "height": 800
+  }
+}

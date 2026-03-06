@@ -1,0 +1,47 @@
+
+{
+  "name": "sniper-terminal",
+  "version": "1.0.0",
+  "description": "S-Tier Crypto Trading Terminal",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron:start": "electron .",
+    "electron:build": "npm run build && electron-builder",
+    "mobile:init": "npm run build && npx cap init",
+    "mobile:add-android": "npx cap add android",
+    "mobile:build": "npm run build && npx cap copy && npx cap open android"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "lightweight-charts": "^4.2.0",
+    "crypto-js": "^4.1.1",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/cli": "^5.0.0"
+  },
+  "devDependencies": {
+    "vite": "^4.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "electron": "^25.0.0",
+    "electron-builder": "^24.0.0",
+    "typescript": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.sniper.terminal",
+    "productName": "SniperTerminal",
+    "mac": {
+      "category": "public.app-category.finance"
+    },
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron-main.js"
+    ]
+  }
+}
