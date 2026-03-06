@@ -4,6 +4,28 @@ import { createChart, ColorType, CrosshairMode, IChartApi, ISeriesApi, LineStyle
 import { Candle, Trendline } from '../types';
 import { THEME } from '../constants';
 
+const EMA_PERIOD = 50;
+
+function calculateEMA(candles: Candle[], period: number): { time: number; value: number }[] {
+  if (candles.length < period) return [];
+  const multiplier = 2 / (period + 1);
+  const result: { time: number; value: number }[] = [];
+
+  // Seed with SMA of the first `period` candles
+  let sum = 0;
+  for (let i = 0; i < period; i++) {
+    sum += candles[i].close;
+  }
+  let ema = sum / period;
+  result.push({ time: candles[period - 1].time, value: ema });
+
+  for (let i = period; i < candles.length; i++) {
+    ema = (candles[i].close - ema) * multiplier + ema;
+    result.push({ time: candles[i].time, value: ema });
+  }
+  return result;
+}
+
 interface TVChartProps {
   data: Candle[];
   symbol: string;
@@ -44,6 +66,8 @@ const TVChart: React.FC<TVChartProps> = ({
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const emaSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const emaDataRef = useRef<{ time: number; value: number }[]>([]);
   
   // References for Price Lines
   const slLineRef = useRef<any>(null);
@@ -126,8 +150,21 @@ const TVChart: React.FC<TVChartProps> = ({
 
     candleSeries.setData(data);
 
+    const emaSeries = chart.addLineSeries({
+      color: THEME.accent,
+      lineWidth: 2,
+      title: '50 EMA',
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+    });
+    const emaData = calculateEMA(data, EMA_PERIOD);
+    emaSeries.setData(emaData);
+
     chartRef.current = chart;
     candleSeriesRef.current = candleSeries;
+    emaSeriesRef.current = emaSeries;
+    emaDataRef.current = emaData;
 
     // --- Events to Sync SVG ---
     chart.timeScale().subscribeVisibleTimeRangeChange(() => {
@@ -192,6 +229,29 @@ const TVChart: React.FC<TVChartProps> = ({
   useEffect(() => {
     if (candleSeriesRef.current && lastCandle) {
       candleSeriesRef.current.update(lastCandle);
+
+      // Update EMA with the latest candle
+      if (emaSeriesRef.current && emaDataRef.current.length > 0) {
+        const multiplier = 2 / (EMA_PERIOD + 1);
+        const prevEma = emaDataRef.current[emaDataRef.current.length - 1];
+        const lastTime = lastCandle.time;
+
+        if (lastTime === prevEma.time) {
+          // Same candle update – recalculate using prior EMA value
+          const prior = emaDataRef.current.length > 1
+            ? emaDataRef.current[emaDataRef.current.length - 2].value
+            : prevEma.value;
+          const newValue = (lastCandle.close - prior) * multiplier + prior;
+          prevEma.value = newValue;
+          emaSeriesRef.current.update(prevEma);
+        } else {
+          // New candle
+          const newValue = (lastCandle.close - prevEma.value) * multiplier + prevEma.value;
+          const newPoint = { time: lastTime, value: newValue };
+          emaDataRef.current.push(newPoint);
+          emaSeriesRef.current.update(newPoint);
+        }
+      }
     }
   }, [lastCandle]);
 
